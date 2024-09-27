@@ -16,8 +16,12 @@
             <label for="productName">Product Name:</label>
             <input type="text" id="productName" name="productName" required>
 
-            <label for="metrics">Metrics (kg, g, ml, etc.):</label>
-            <input type="text" id="metrics" name="metrics" required>
+            <label for="metrics">Measurements:</label>
+            <select id="metrics" name="metrics"> <option value="kg">kg</option>
+                <option value="g">g</option>
+                <option value="ml">ml</option>
+                <option value="l">l</option>
+            </select>
 
             <label for="quantity">Quantity:</label>
             <input type="number" id="quantity" name="quantity" required>
@@ -29,15 +33,12 @@
             <input type="text" id="location" name="location" required>
 
             <label for="image">Product Image URL:</label>
-            <input type="url" id="image" name="image">
+            <input type="file" id="image" accept="image/*" required>
 
             <button type="submit">Add Product</button>
         </form>
-
-        <h2>Product List</h2>
-        <ul id="productList"></ul>
     </main>
 
-    <script src="../scripts/donor.js"></script> <!-- Donor dashboard logic -->
+    <script src="../scripts/donor.js"></script> 
 </body>
 </html>

@@ -73,6 +73,9 @@ app.get('/view-products.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend/public/html/view-products.html'));
 });
 
+app.get('/donor-dashboard.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend/public/html/donor-dashboard.html'));
+});
 
 // User registration
 app.post('/register', (req, res) => {
@@ -129,8 +132,11 @@ app.post('/login', (req, res) => {
         }
 
         // Password is valid; proceed with login
-        // You can also set a session or token here if needed
-        res.status(200).json({ message: 'Login successful' });
+        // Include user role in the response
+        res.status(200).json({
+            message: 'Login successful',
+            role: user.role // Send the user's role back to the frontend
+        });
     });
 });
 
@@ -146,10 +152,11 @@ app.post('/logout', (req, res) => {
 });
 
 
-// Add product (only for donors)
+//products
 app.post('/products', authenticateJWT, (req, res) => {
+    // Check user role
     if (req.user.role !== 'donor') {
-        return res.status(403).json({ message: 'Access denied' });
+        return res.status(403).json({ message: 'Access denied. Only donors can add products.' });
     }
 
     const { productName, metrics, quantity, expirationDate, location, image } = req.body;
@@ -157,6 +164,7 @@ app.post('/products', authenticateJWT, (req, res) => {
 
     db.query(sql, [productName, metrics, quantity, expirationDate, location, image, req.user.userID], (err, result) => {
         if (err) {
+            console.error('Database error:', err);
             return res.status(500).json({ message: 'Error adding product', error: err });
         }
         res.status(201).json({ message: 'Product added successfully', productID: result.insertId });

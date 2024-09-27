@@ -41,11 +41,60 @@ async function registerUser(event) {
     }
 }
 
+//login
+document.addEventListener("DOMContentLoaded", () => {
+    const loginForm = document.getElementById("loginForm");
+    if (loginForm) {
+        loginForm.addEventListener("submit", loginUser);
+    }
+});
+
+async function loginUser(event) {
+    event.preventDefault();
+    const email = document.querySelector("#email").value;
+    const password = document.querySelector("#password").value;
+
+    try {
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert('Login successful!');
+            
+            // Redirect based on user role
+            switch (result.role) {
+                case 'admin':
+                    window.location.href = 'notifications.html'; // Redirect to notifications page
+                    break;
+                case 'donor':
+                    window.location.href = 'donor-dashboard.html'; // Redirect to donor dashboard
+                    break;
+                case 'receiver':
+                    window.location.href = 'productViewPage.html'; // Redirect to product view page
+                    break;
+                default:
+                    window.location.href = 'index.html'; // Default redirect
+                    break;
+            }
+        } else {
+            alert(result.message);
+        }
+    } catch (error) {
+        console.error('Error during login:', error);
+        alert('An error occurred. Please try again.'); // Handle fetch errors
+    }
+}
+
 
 
 // Logout function
 function logoutUser() {
-    fetch('http://localhost:3000/logout', { method: 'POST' })
+    fetch('/logout', { method: 'POST' })
         .then(() => {
             localStorage.clear();
             alert('Logout successful!');

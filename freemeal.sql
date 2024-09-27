@@ -22,7 +22,10 @@ CREATE TABLE IF NOT EXISTS Users (
     roleID INT, -- Refers to the role of the user
     FOREIGN KEY (roleID) REFERENCES Roles(roleID) ON DELETE SET NULL, -- Role reference
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    role ENUM('donor', 'receiver', 'admin') NOT NULL DEFAULT 'donor';
 );
+
+
 
 -- Create Products table (stores food products donated by donors)
 CREATE TABLE IF NOT EXISTS Products (
