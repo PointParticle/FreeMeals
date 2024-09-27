@@ -1,28 +1,34 @@
-// server.js
-
 const express = require('express');
 const session = require('express-session');
 const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
+const cors = require('cors'); // To handle cross-origin requests
+const path = require('path');
+
 const app = express();
-const port = 3000; // You can change this port if needed
+const port = 3000;
 
 // Middleware
+app.use(cors()); // Enable CORS for frontend communication
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
-    secret: 'your_secret_key', // Change this to a more secure key in production
+    secret: 'JAmie12!@', 
     resave: false,
     saveUninitialized: true,
 }));
 
+// Serve static files from the 'frontend/public' directory
+app.use(express.static(path.join(__dirname, 'frontend/public')));
+
+
 // MySQL connection
 const db = mysql.createConnection({
     host: '127.0.0.1',
-    user: 'root',
-    password: '', // your password
+    user: 'jamie',
+    password: 'root', // your password
     database: 'freemeal',
 });
 
@@ -38,7 +44,7 @@ db.connect(err => {
 const authenticateJWT = (req, res, next) => {
     const token = req.headers['authorization'];
     if (token) {
-        jwt.verify(token, 'your_jwt_secret', (err, user) => {
+        jwt.verify(token, 'JAmie12!@', (err, user) => {
             if (err) {
                 return res.sendStatus(403);
             }
@@ -50,41 +56,84 @@ const authenticateJWT = (req, res, next) => {
     }
 };
 
-// Routes
+//serve pages
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend/public/html/index.html'));
+});
+
+app.get('/register.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend/public/html/register.html'));
+});
+
+app.get('/login.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend/public/html/login.html'));
+});
+
+app.get('/view-products.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend/public/html/view-products.html'));
+});
+
+
 // User registration
 app.post('/register', (req, res) => {
     const { name, email, password, address, location, role } = req.body;
-    const hashedPassword = bcrypt.hashSync(password, 10);
 
-    const sql = 'INSERT INTO Users (name, email, password, address, location, role) VALUES (?, ?, ?, ?, ?, ?)';
-    db.query(sql, [name, email, hashedPassword, address, location, role], (err, result) => {
+    // Check if user already exists
+    const checkUserSql = 'SELECT * FROM Users WHERE email = ?';
+    db.query(checkUserSql, [email], (err, results) => {
         if (err) {
-            return res.status(500).json({ message: 'Error creating user', error: err });
+            return res.status(500).json({ message: 'Error checking user', error: err });
         }
-        res.status(201).json({ message: 'User created successfully', userID: result.insertId });
+
+        if (results.length > 0) {
+            return res.status(409).json({ redirect: '/login', message: 'This account already exists.' });
+        }
+        
+
+        // Hash the password
+        const hashedPassword = bcrypt.hashSync(password, 10);
+
+        // Insert new user into database
+        const sql = 'INSERT INTO Users (name, email, password, address, location, role) VALUES (?, ?, ?, ?, ?, ?)';
+        db.query(sql, [name, email, hashedPassword, address, location, role], (err, result) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error creating user', error: err });
+            }
+            res.status(201).json({ message: 'User created successfully', userID: result.insertId });
+        });
     });
 });
+
 
 // User login
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
-    
-    const sql = 'SELECT * FROM Users WHERE email = ?';
-    db.query(sql, [email], (err, results) => {
-        if (err || results.length === 0) {
+
+    // Check if user exists
+    const checkUserSql = 'SELECT * FROM Users WHERE email = ?';
+    db.query(checkUserSql, [email], (err, results) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error checking user', error: err });
+        }
+
+        if (results.length === 0) {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
+        // User exists, check the password
         const user = results[0];
-        if (bcrypt.compareSync(password, user.password)) {
-            const token = jwt.sign({ userID: user.userID, role: user.role }, 'your_jwt_secret', { expiresIn: '1h' });
-            req.session.userID = user.userID; // store user ID in session
-            return res.json({ message: 'Login successful', token });
-        } else {
+        const isPasswordValid = bcrypt.compareSync(password, user.password);
+
+        if (!isPasswordValid) {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
+
+        // Password is valid; proceed with login
+        // You can also set a session or token here if needed
+        res.status(200).json({ message: 'Login successful' });
     });
 });
+
 
 // User logout
 app.post('/logout', (req, res) => {
@@ -96,16 +145,17 @@ app.post('/logout', (req, res) => {
     });
 });
 
+
 // Add product (only for donors)
 app.post('/products', authenticateJWT, (req, res) => {
     if (req.user.role !== 'donor') {
         return res.status(403).json({ message: 'Access denied' });
     }
 
-    const { productName, metrics, quantity, expirationDate, location } = req.body;
-    const sql = 'INSERT INTO Products (productName, metrics, quantity, expirationDate, location, donorID) VALUES (?, ?, ?, ?, ?, ?)';
-    
-    db.query(sql, [productName, metrics, quantity, expirationDate, location, req.user.userID], (err, result) => {
+    const { productName, metrics, quantity, expirationDate, location, image } = req.body;
+    const sql = 'INSERT INTO Products (productName, metrics, quantity, expirationDate, location, image, donorID) VALUES (?, ?, ?, ?, ?, ?, ?)';
+
+    db.query(sql, [productName, metrics, quantity, expirationDate, location, image, req.user.userID], (err, result) => {
         if (err) {
             return res.status(500).json({ message: 'Error adding product', error: err });
         }
@@ -116,7 +166,7 @@ app.post('/products', authenticateJWT, (req, res) => {
 // Get all products (for donors and receivers)
 app.get('/products', authenticateJWT, (req, res) => {
     const sql = 'SELECT * FROM Products';
-    
+
     db.query(sql, (err, results) => {
         if (err) {
             return res.status(500).json({ message: 'Error fetching products', error: err });
@@ -133,17 +183,17 @@ app.post('/claim', authenticateJWT, (req, res) => {
 
     const { productID } = req.body;
     const sql = 'INSERT INTO Claims (productID, receiverID) VALUES (?, ?)';
-    
+
     db.query(sql, [productID, req.user.userID], (err, result) => {
         if (err) {
             return res.status(500).json({ message: 'Error claiming product', error: err });
         }
         res.status(201).json({ message: 'Product claimed successfully', claimID: result.insertId });
 
-        // Optionally, create a notification
-        const notificationMessage = `Product with ID ${productID} has been claimed by user ${req.user.userID}.`;
+        // Send notification to donor and receiver
+        const notificationMessage = `Product with ID ${productID} has been claimed by receiver ${req.user.userID}.`;
         const notificationSQL = 'INSERT INTO Notifications (productID, donorID, receiverID, message) VALUES (?, ?, ?, ?)';
-        
+
         db.query(notificationSQL, [productID, req.body.donorID, req.user.userID, notificationMessage], (err) => {
             if (err) {
                 console.error('Error creating notification:', err);
