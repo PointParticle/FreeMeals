@@ -167,13 +167,16 @@ app.post('/products', authenticateJWT, (req, res) => {
     });
 });
 
-// Get all products (for donors and receivers)
 app.get('/products', authenticateJWT, (req, res) => {
     const sql = 'SELECT * FROM Products';
 
     db.query(sql, (err, results) => {
         if (err) {
             return res.status(500).json({ message: 'Error fetching products', error: err });
+        }
+        // Check if there are no products
+        if (results.length === 0) {
+            return res.status(200).json({ message: 'No products available' });
         }
         res.json(results);
     });
@@ -186,47 +189,57 @@ app.post('/claim', authenticateJWT, (req, res) => {
     }
 
     const { productID } = req.body;
-    const sql = 'INSERT INTO Claims (productID, receiverID) VALUES (?, ?)';
 
-    db.query(sql, [productID, req.user.userID], (err, result) => {
-        if (err) {
-            return res.status(500).json({ message: 'Error claiming product', error: err });
-        }
-        res.status(201).json({ message: 'Product claimed successfully', claimID: result.insertId });
+    // Start a transaction to ensure atomicity
+    db.beginTransaction(err => {
+        if (err) return res.status(500).json({ message: 'Transaction start failed', error: err });
 
-        // Send notification to donor and receiver
-        const notificationMessage = `Product with ID ${productID} has been claimed by receiver ${req.user.userID}.`;
-        const notificationSQL = 'INSERT INTO Notifications (productID, donorID, receiverID, message) VALUES (?, ?, ?, ?)';
-
-        db.query(notificationSQL, [productID, req.body.donorID, req.user.userID, notificationMessage], (err) => {
+        const sqlClaim = 'INSERT INTO Claims (productID, receiverID) VALUES (?, ?)';
+        db.query(sqlClaim, [productID, req.user.userID], (err, result) => {
             if (err) {
-                console.error('Error creating notification:', err);
+                return db.rollback(() => {
+                    res.status(500).json({ message: 'Error claiming product', error: err });
+                });
             }
+
+            // Update product quantity
+            const updateQuantitySQL = 'UPDATE Products SET quantity = quantity - 1 WHERE productID = ? AND quantity > 0';
+            db.query(updateQuantitySQL, [productID], (err, updateResult) => {
+                if (err) {
+                    return db.rollback(() => {
+                        res.status(500).json({ message: 'Error updating product quantity', error: err });
+                    });
+                }
+
+                if (updateResult.affectedRows === 0) {
+                    return db.rollback(() => {
+                        res.status(400).json({ message: 'No more products available to claim' });
+                    });
+                }
+
+                db.commit(err => {
+                    if (err) {
+                        return db.rollback(() => {
+                            res.status(500).json({ message: 'Transaction commit failed', error: err });
+                        });
+                    }
+
+                    // Send notification to donor
+                    const notificationMessage = `Product with ID ${productID} has been claimed by receiver ${req.user.userID}.`;
+                    const notificationSQL = 'INSERT INTO Notifications (productID, donorID, receiverID, message) VALUES (?, ?, ?, ?)';
+                    db.query(notificationSQL, [productID, req.body.donorID, req.user.userID, notificationMessage], (err) => {
+                        if (err) {
+                            console.error('Error creating notification:', err);
+                        }
+                    });
+
+                    res.status(201).json({ message: 'Product claimed successfully', claimID: result.insertId });
+                });
+            });
         });
     });
 });
 
-// Get claims history for donors
-app.get('/claims/history', authenticateJWT, (req, res) => {
-    if (req.user.role !== 'donor') {
-        return res.status(403).json({ message: 'Access denied' });
-    }
-
-    const sql = `
-        SELECT c.*, p.productName, u.name AS receiverName
-        FROM Claims c
-        JOIN Products p ON c.productID = p.productID
-        JOIN Users u ON c.receiverID = u.userID
-        WHERE p.donorID = ?
-    `;
-
-    db.query(sql, [req.user.userID], (err, results) => {
-        if (err) {
-            return res.status(500).json({ message: 'Error fetching claims history', error: err });
-        }
-        res.json(results);
-    });
-});
 
 // Get all notifications for admin
 app.get('/notifications', authenticateJWT, (req, res) => {
