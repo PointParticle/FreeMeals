@@ -12,9 +12,19 @@
     </header>
 
     <main>
-        <ul id="notificationList"></ul>
+        <table id="notification-container">
+            <thead>
+                <tr>
+                    <th>Message</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="notificationList"></tr>
+            </tbody>
+        </table>
     </main>
 
-    <script src="../scripts/notification.js"></script> <!-- Notification logic -->
+    <script src="../scripts/notification.js"></script>
 </body>
 </html>

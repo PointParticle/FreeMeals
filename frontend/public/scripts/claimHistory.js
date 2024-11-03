@@ -1,5 +1,3 @@
-// claim-history.js
-
 // Fetch and display claim history
 async function loadClaimHistory() {
     const response = await fetch('http://localhost:3000/claims/history', {

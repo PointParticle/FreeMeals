@@ -1,5 +1,3 @@
-// notification.js
-
 // Fetch and display notifications
 async function loadNotifications() {
     const response = await fetch('http://localhost:3000/notifications', {

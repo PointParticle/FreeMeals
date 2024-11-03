@@ -1,5 +1,3 @@
-// apps.js
-
 // Register User
 document.addEventListener("DOMContentLoaded", () => {
     const registerForm = document.getElementById("registerForm");
@@ -13,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Registration function
 async function registerUser(event) {
     event.preventDefault();
     const name = document.querySelector("#name").value;
@@ -23,7 +22,7 @@ async function registerUser(event) {
     const role = document.querySelector("#role").value;
 
     const loadingIndicator = document.getElementById("loadingIndicator");
-    loadingIndicator.style.display = "block"; // Show loading indicator
+    loadingIndicator.style.display = "block"; 
 
     try {
         const response = await fetch('/register', {
@@ -33,14 +32,14 @@ async function registerUser(event) {
         });
 
         const result = await response.json();
-        loadingIndicator.style.display = "none"; // Hide loading indicator
+        loadingIndicator.style.display = "none"; 
 
         if (response.ok) {
             alert('Registration successful! Please log in.');
-            window.location.href = 'login.html'; // Redirect to login page after successful registration
+            window.location.href = 'login.html'; 
         } else {
             const errorMessage = document.getElementById("error-message");
-            errorMessage.textContent = result.message; // Display error message inline
+            errorMessage.textContent = result.message; 
         }
     } catch (error) {
         console.error('Error during registration:', error);
@@ -48,6 +47,7 @@ async function registerUser(event) {
     }
 }
 
+// Login function
 async function loginUser(event) {
     event.preventDefault();
     const email = document.querySelector("#email").value;
@@ -61,45 +61,14 @@ async function loginUser(event) {
         });
 
         const result = await response.json();
-
         if (response.ok) {
-            alert('Login successful!');
-            switch (result.role) {
-                case 'admin':
-                    window.location.href = 'donor-dashboard.html'; // Redirect to admin dashboard
-                    break;
-                case 'donor':
-                    window.location.href = 'donor-dashboard.html'; // Redirect to donor dashboard
-                    break;
-                case 'receiver':
-                    window.location.href = 'view-products.html'; // Redirect to receiver dashboard
-                    break;
-                default:
-                    alert('Unknown user role. Please contact support.');
-                    break;
-            }
+            localStorage.setItem('token', result.token); 
+            window.location.href = 'view-products.html'; 
         } else {
-            alert(result.message);
+            alert(result.message); 
         }
     } catch (error) {
         console.error('Error during login:', error);
         alert('An error occurred. Please try again.');
     }
-}
-
-function logoutUser() {
-    fetch('/logout', { method: 'POST' })
-        .then(response => {
-            if (response.ok) {
-                localStorage.clear(); // Clear any stored user info
-                alert('Logout successful!');
-                window.location.href = 'index.html'; // Redirect to login page
-            } else {
-                alert('Logout failed. Please try again.');
-            }
-        })
-        .catch(error => {
-            console.error('Error during logout:', error);
-            alert('An error occurred while logging out.');
-        });
 }

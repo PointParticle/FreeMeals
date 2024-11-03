@@ -23,7 +23,6 @@ app.use(session({
 // Serve static files from the 'frontend/public' directory
 app.use(express.static(path.join(__dirname, 'frontend/public')));
 
-
 // MySQL connection
 const db = mysql.createConnection({
     host: 'localhost',
@@ -56,7 +55,7 @@ const authenticateJWT = (req, res, next) => {
     }
 };
 
-//serve pages
+// Serve pages
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend/public/html/index.html'));
 });
@@ -91,7 +90,6 @@ app.post('/register', (req, res) => {
         if (results.length > 0) {
             return res.status(409).json({ redirect: '/login', message: 'This account already exists.' });
         }
-        
 
         // Hash the password
         const hashedPassword = bcrypt.hashSync(password, 10);
@@ -106,7 +104,6 @@ app.post('/register', (req, res) => {
         });
     });
 });
-
 
 // User login
 app.post('/login', (req, res) => {
@@ -132,14 +129,14 @@ app.post('/login', (req, res) => {
         }
 
         // Password is valid; proceed with login
-        // Include user role in the response
+        const token = jwt.sign({ userID: user.userID, role: user.role }, 'JAmie12!@', { expiresIn: '1h' });
         res.status(200).json({
             message: 'Login successful',
+            token, // Send the JWT back to the client
             role: user.role // Send the user's role back to the frontend
         });
     });
 });
-
 
 // User logout
 app.post('/logout', (req, res) => {
@@ -151,8 +148,7 @@ app.post('/logout', (req, res) => {
     });
 });
 
-
-//products
+// Products
 app.post('/products', authenticateJWT, (req, res) => {
     // Check user role
     if (req.user.role !== 'donor') {
