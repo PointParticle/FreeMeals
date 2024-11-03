@@ -21,11 +21,9 @@ CREATE TABLE IF NOT EXISTS Users (
     location VARCHAR(255),
     roleID INT, -- Refers to the role of the user
     FOREIGN KEY (roleID) REFERENCES Roles(roleID) ON DELETE SET NULL, -- Role reference
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    role ENUM('donor', 'receiver', 'admin') NOT NULL DEFAULT 'donor';
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    role ENUM('donor', 'receiver', 'admin') NOT NULL DEFAULT 'donor'
 );
-
-
 
 -- Create Products table (stores food products donated by donors)
 CREATE TABLE IF NOT EXISTS Products (
@@ -65,7 +63,6 @@ CREATE TABLE IF NOT EXISTS Notifications (
     FOREIGN KEY (receiverID) REFERENCES Users(userID) ON DELETE CASCADE -- Cascade delete if receiver is removed
 );
 
--- Admin table (optional, not necessary if you manage admins via the Roles table)
 -- Create Admin table (optional for system administrators, if needed)
 CREATE TABLE IF NOT EXISTS Admin (
     adminID INT AUTO_INCREMENT PRIMARY KEY,
