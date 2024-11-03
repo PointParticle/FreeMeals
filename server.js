@@ -26,9 +26,9 @@ app.use(express.static(path.join(__dirname, 'frontend/public')));
 
 // MySQL connection
 const db = mysql.createConnection({
-    host: '127.0.0.1',
-    user: 'jamie',
-    password: 'root', // your password
+    host: 'localhost',
+    user: 'root',
+    password: '', 
     database: 'freemeal',
 });
 
