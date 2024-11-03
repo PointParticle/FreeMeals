@@ -6,6 +6,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (registerForm) {
         registerForm.addEventListener("submit", registerUser);
     }
+
+    const loginForm = document.getElementById("loginForm");
+    if (loginForm) {
+        loginForm.addEventListener("submit", loginUser);
+    }
 });
 
 async function registerUser(event) {
@@ -13,41 +18,35 @@ async function registerUser(event) {
     const name = document.querySelector("#name").value;
     const email = document.querySelector("#email").value;
     const password = document.querySelector("#password").value;
-    const phoneNumber = document.querySelector("#phoneNumber").value; // Corrected variable name
+    const phoneNumber = document.querySelector("#phoneNumber").value;
     const location = document.querySelector("#location").value;
     const role = document.querySelector("#role").value;
+
+    const loadingIndicator = document.getElementById("loadingIndicator");
+    loadingIndicator.style.display = "block"; // Show loading indicator
 
     try {
         const response = await fetch('/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password, phoneNumber, location, role }) // Use phoneNumber here
+            body: JSON.stringify({ name, email, password, phoneNumber, location, role })
         });
 
         const result = await response.json();
-        
+        loadingIndicator.style.display = "none"; // Hide loading indicator
+
         if (response.ok) {
             alert('Registration successful! Please log in.');
             window.location.href = 'login.html'; // Redirect to login page after successful registration
-        } else if (result.redirect) {  // Handle user already exists case
-            alert(result.message);
-            window.location.href = 'login.html'; // Redirect to login page for existing accounts
         } else {
-            alert(result.message);
+            const errorMessage = document.getElementById("error-message");
+            errorMessage.textContent = result.message; // Display error message inline
         }
     } catch (error) {
         console.error('Error during registration:', error);
-        alert('An error occurred. Please try again.'); // Handle fetch errors
+        alert('An error occurred. Please try again.');
     }
 }
-
-// Login User
-document.addEventListener("DOMContentLoaded", () => {
-    const loginForm = document.getElementById("loginForm");
-    if (loginForm) {
-        loginForm.addEventListener("submit", loginUser);
-    }
-});
 
 async function loginUser(event) {
     event.preventDefault();
@@ -65,8 +64,6 @@ async function loginUser(event) {
 
         if (response.ok) {
             alert('Login successful!');
-            
-            // Redirect based on user role
             switch (result.role) {
                 case 'admin':
                     window.location.href = 'donor-dashboard.html'; // Redirect to admin dashboard
@@ -78,7 +75,7 @@ async function loginUser(event) {
                     window.location.href = 'view-products.html'; // Redirect to receiver dashboard
                     break;
                 default:
-                    alert('Unknown user role. Please contact support.'); // Handle unexpected roles
+                    alert('Unknown user role. Please contact support.');
                     break;
             }
         } else {
@@ -86,11 +83,10 @@ async function loginUser(event) {
         }
     } catch (error) {
         console.error('Error during login:', error);
-        alert('An error occurred. Please try again.'); // Handle fetch errors
+        alert('An error occurred. Please try again.');
     }
 }
 
-// Logout User
 function logoutUser() {
     fetch('/logout', { method: 'POST' })
         .then(response => {
@@ -104,6 +100,6 @@ function logoutUser() {
         })
         .catch(error => {
             console.error('Error during logout:', error);
-            alert('An error occurred while logging out.'); // Handle fetch errors
+            alert('An error occurred while logging out.');
         });
 }
