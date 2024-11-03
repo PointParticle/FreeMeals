@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS Users (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL, -- Ensure this is long enough for hashed passwords (e.g., bcrypt)
-    address VARCHAR(255),
+    phoneNumber VARCHAR(15),
     location VARCHAR(255),
     roleID INT, -- Refers to the role of the user
     FOREIGN KEY (roleID) REFERENCES Roles(roleID) ON DELETE SET NULL, -- Role reference

@@ -79,7 +79,7 @@ app.get('/donor-dashboard.html', (req, res) => {
 
 // User registration
 app.post('/register', (req, res) => {
-    const { name, email, password, address, location, role } = req.body;
+    const { name, email, password, phoneNumber, location, role } = req.body;
 
     // Check if user already exists
     const checkUserSql = 'SELECT * FROM Users WHERE email = ?';
@@ -97,8 +97,8 @@ app.post('/register', (req, res) => {
         const hashedPassword = bcrypt.hashSync(password, 10);
 
         // Insert new user into database
-        const sql = 'INSERT INTO Users (name, email, password, address, location, role) VALUES (?, ?, ?, ?, ?, ?)';
-        db.query(sql, [name, email, hashedPassword, address, location, role], (err, result) => {
+        const sql = 'INSERT INTO Users (name, email, password, phoneNumber, location, role) VALUES (?, ?, ?, ?, ?, ?)';
+        db.query(sql, [name, email, hashedPassword, phoneNumber, location, role], (err, result) => {
             if (err) {
                 return res.status(500).json({ message: 'Error creating user', error: err });
             }
