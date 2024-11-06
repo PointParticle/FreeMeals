@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const cors = require('cors'); // To handle cross-origin requests
 const path = require('path');
+const multer = require('multer'); // To handle file uploads
 
 const app = express();
 const port = 3000;
@@ -38,6 +39,17 @@ db.connect(err => {
     }
     console.log('Connected to database.');
 });
+
+// Multer storage configuration for image uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, './uploads'); // Directory to store images
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname)); // Ensure unique filenames
+    }
+});
+const upload = multer({ storage: storage });
 
 // Middleware for checking authentication
 const authenticateJWT = (req, res, next) => {
@@ -149,13 +161,15 @@ app.post('/logout', (req, res) => {
 });
 
 // Products
-app.post('/products', authenticateJWT, (req, res) => {
+app.post('/products', authenticateJWT, upload.single('image'), (req, res) => {
     // Check user role
     if (req.user.role !== 'donor') {
         return res.status(403).json({ message: 'Access denied. Only donors can add products.' });
     }
 
-    const { productName, metrics, quantity, expirationDate, location, image } = req.body;
+    const { productName, metrics, quantity, expirationDate, location } = req.body;
+    const image = req.file ? req.file.path : null; // Get image path if file uploaded
+
     const sql = 'INSERT INTO Products (productName, metrics, quantity, expirationDate, location, image, donorID) VALUES (?, ?, ?, ?, ?, ?, ?)';
 
     db.query(sql, [productName, metrics, quantity, expirationDate, location, image, req.user.userID], (err, result) => {
@@ -239,7 +253,6 @@ app.post('/claim', authenticateJWT, (req, res) => {
         });
     });
 });
-
 
 // Get all notifications for admin
 app.get('/notifications', authenticateJWT, (req, res) => {
