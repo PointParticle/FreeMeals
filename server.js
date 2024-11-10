@@ -10,6 +10,7 @@ const fs = require('fs');
 
 // Initialize Express
 let app = express();
+const port = 3000;
 
 // Create upload directory if not exists
 const uploadDir = './uploads';
