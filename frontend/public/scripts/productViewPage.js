@@ -1,44 +1,58 @@
-async function loadProducts() {
-    try {
-        const response = await fetch('/products', {
-            method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('Applesauce!@'),
-            },
+document.addEventListener('DOMContentLoaded', () => {
+    const productContainer = document.getElementById('product-container');
+    const token = localStorage.getItem('token');
+
+    // Fetch the products from the database
+    fetch('/products')
+        .then(response => response.json())
+        .then(products => {
+            // Loop through the products and create a card for each one
+            products.forEach(product => {
+                createProductCard(product);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching products:', error);
         });
 
-        if (!response.ok) {
-            throw new Error(`Error: ${response.status} ${response.statusText}`);
-        }
+    // Function to create a product card
+    function createProductCard(product) {
+        const card = document.createElement('div');
+        card.classList.add('product-card');
 
-        const products = await response.json();
-        const productContainer = document.getElementById('product-container');
+        // Image
+        const img = document.createElement('img');
+        img.src = product.image || '../uploads/noimage.PNG'; // Adjust based on actual field name
+        img.alt = product.name;
 
-        productContainer.innerHTML = ''; // Clear existing products
+        // Title
+        const title = document.createElement('h3');
+        title.textContent = product.name;
 
-        if (products.length === 0) {
-            // Handle the case where no products are available
-            productContainer.innerHTML = '<p>No products available at the moment.</p>';
-        } else {
-            // Display products
-            products.forEach(product => {
-                const productCard = document.createElement('div');
-                productCard.className = 'product-card';
-                productCard.innerHTML = `
-                    <img src="${product.image || 'path/to/default-image.jpg'}" alt="No picture available" class="product-image">
-                    <h3>${product.productName}</h3>
-                    <p>Quantity: <span id="qty-${product.productID}">${product.quantity}</span> ${product.metrics}</p>
-                    <p>Expires on: ${new Date(product.expirationDate).toLocaleDateString()}</p>
-                    <button class="btn" onclick="viewProduct(${product.productID})">View Details</button>
-                    <button class="btn" onclick="claimProduct(${product.productID})">Claim Product</button>
-                `;
-                productContainer.appendChild(productCard);
-            });
-        }
-    } catch (error) {
-        console.error('Error fetching products:', error);
-        alert('Failed to load products. Please try again later.');
+        // Description
+        const description = document.createElement('p');
+        description.textContent = `Quantity: ${product.quantity} ${product.metrics}`;
+
+        const location = document.createElement('p');
+        location.textContent = `Location: ${product.location}`;
+
+        const expiration = document.createElement('p');
+        expiration.textContent = `Expires on: ${product.expiration_date}`;
+
+        // Button
+        const button = document.createElement('button');
+        button.textContent = 'Donate Now';
+
+        // Append everything to the card
+        card.appendChild(img);
+        card.appendChild(title);
+        card.appendChild(description);
+        card.appendChild(location);
+        card.appendChild(expiration);
+        card.appendChild(button);
+
+        // Append the card to the container
+        productContainer.appendChild(card);
     }
-}
+});
 
-// Other functions remain unchanged...
