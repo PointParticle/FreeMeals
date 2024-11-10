@@ -1,6 +1,6 @@
 async function addProduct(event) {
     event.preventDefault();
-    
+
     const productName = document.querySelector("#productName").value;
     const metrics = document.querySelector("#metrics").value;
     const quantity = document.querySelector("#quantity").value;
@@ -23,19 +23,28 @@ async function addProduct(event) {
     formData.append('location', location);
     formData.append('image', image); // Append the image file
 
-    // Send the data to the server
+    // Get the token from localStorage
+    const token = localStorage.getItem('token');
+
+    // If no token, alert the user and exit
+    if (!token) {
+        alert('You need to log in first.');
+        return;
+    }
+
+    // Send the data to the server with the token in the Authorization header
     const response = await fetch('/products', {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}` // Ensure the token is stored with the correct key
+            'Authorization': `Bearer ${token}`, // Send the token
         },
         body: formData // Use FormData as the body of the request
     });
 
     // Check response status
     if (!response.ok) {
-        const errorText = await response.text(); // Read response as text
-        alert(`Error adding product: ${errorText}`); // Show error message
+        const errorText = await response.text();
+        alert(`Error adding product: ${errorText}`);
         return; // Exit the function early
     }
 

@@ -48,27 +48,43 @@ async function registerUser(event) {
 }
 
 // Login function
-async function loginUser(event) {
+async function login(event) {
     event.preventDefault();
+
     const email = document.querySelector("#email").value;
     const password = document.querySelector("#password").value;
 
-    try {
-        const response = await fetch('/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            localStorage.setItem('token', result.token); 
-            window.location.href = 'view-products.html'; 
-        } else {
-            alert(result.message); 
-        }
-    } catch (error) {
-        console.error('Error during login:', error);
-        alert('An error occurred. Please try again.');
+    // Validate input before sending the request
+    if (!email || !password) {
+        alert('Please fill in both fields.');
+        return; // Exit if validation fails
     }
+
+    // Send login data to the server
+    const response = await fetch('/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }) // Send email and password as JSON
+    });
+
+    // Check response status
+    if (!response.ok) {
+        const errorText = await response.text();
+        alert(`Login failed: ${errorText}`);
+        return; // Exit the function if login fails
+    }
+
+    const result = await response.json();
+
+    // Save the token in localStorage if login is successful
+    localStorage.setItem('token', result.token); // Store the token
+
+    // Optionally, store the role or other user information if needed
+    localStorage.setItem('role', result.role);
+
+    // Redirect to the dashboard or other page after successful login
+    window.location.href = 'donor-dashboard.html';
 }
+

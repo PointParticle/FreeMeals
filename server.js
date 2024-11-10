@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
-const cors = require('cors'); // To handle cross-origin requests
+
 const path = require('path');
 const multer = require('multer'); // To handle file uploads
 const fs = require('fs');
@@ -19,7 +19,7 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // Middleware
-app.use(cors()); // Enable CORS for frontend communication
+// app.use(cors()); // Removed CORS middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
