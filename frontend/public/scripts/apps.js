@@ -1,11 +1,11 @@
-// Register User
 document.addEventListener("DOMContentLoaded", () => {
     const registerForm = document.getElementById("registerForm");
+    const loginForm = document.getElementById("loginForm");
+
     if (registerForm) {
         registerForm.addEventListener("submit", registerUser);
     }
 
-    const loginForm = document.getElementById("loginForm");
     if (loginForm) {
         loginForm.addEventListener("submit", loginUser);
     }
@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Registration function
 async function registerUser(event) {
     event.preventDefault();
+
     const name = document.querySelector("#name").value;
     const email = document.querySelector("#email").value;
     const password = document.querySelector("#password").value;
@@ -22,7 +23,7 @@ async function registerUser(event) {
     const role = document.querySelector("#role").value;
 
     const loadingIndicator = document.getElementById("loadingIndicator");
-    loadingIndicator.style.display = "block"; 
+    loadingIndicator.style.display = "block";
 
     try {
         const response = await fetch('/register', {
@@ -32,14 +33,13 @@ async function registerUser(event) {
         });
 
         const result = await response.json();
-        loadingIndicator.style.display = "none"; 
+        loadingIndicator.style.display = "none";
 
         if (response.ok) {
             alert('Registration successful! Please log in.');
-            window.location.href = 'login.html'; 
+            window.location.href = 'login.html';
         } else {
-            const errorMessage = document.getElementById("error-message");
-            errorMessage.textContent = result.message; 
+            document.getElementById("error-message").textContent = result.message;
         }
     } catch (error) {
         console.error('Error during registration:', error);
@@ -62,10 +62,10 @@ async function loginUser(event) {
 
         const result = await response.json();
         if (response.ok) {
-            localStorage.setItem('token', result.token); 
-            window.location.href = 'view-products.html'; 
+            localStorage.setItem('token', result.token); // Store token correctly
+            window.location.href = 'view-products.html';
         } else {
-            alert(result.message); 
+            alert(result.message);
         }
     } catch (error) {
         console.error('Error during login:', error);

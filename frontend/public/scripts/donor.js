@@ -1,6 +1,5 @@
-// main.js
 document.getElementById("productForm").addEventListener("submit", async (event) => {
-    event.preventDefault(); // Prevent the form from submitting the default way
+    event.preventDefault();
 
     const formData = new FormData();
     formData.append("productName", document.getElementById("productName").value);
@@ -14,9 +13,15 @@ document.getElementById("productForm").addEventListener("submit", async (event) 
         formData.append("image", imageInput);
     }
 
+    // Retrieve the JWT token from localStorage
+    const token = localStorage.getItem('token');
+
     try {
         const response = await fetch("/products", {
             method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`, // Add token to Authorization header
+            },
             body: formData,
         });
 
@@ -24,11 +29,10 @@ document.getElementById("productForm").addEventListener("submit", async (event) 
         if (response.ok) {
             alert("Product added successfully");
         } else {
-            alert("Error: " + result.error);
+            alert("Error: " + result.message);
         }
     } catch (error) {
         console.error("Error submitting form:", error);
         alert("An error occurred while submitting the form.");
     }
 });
-

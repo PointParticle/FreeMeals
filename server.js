@@ -22,7 +22,7 @@ if (!fs.existsSync(uploadDir)) {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
-    secret: 'YourSessionSecretHere', // Hardcoded session secret
+    secret: 'Applesauce!@', // Hardcoded session secret
     resave: false,
     saveUninitialized: true,
 }));
@@ -69,9 +69,11 @@ const upload = multer({
 
 // JWT Authentication Middleware
 const authenticateJWT = (req, res, next) => {
-    const token = req.headers['authorization'];
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Extract token part after "Bearer"
+
     if (token) {
-        jwt.verify(token, 'YourJWTSecretHere', (err, user) => { // Hardcoded JWT secret
+        jwt.verify(token, 'Applesauce!@', (err, user) => {
             if (err) {
                 return res.status(403).json({ message: 'Access denied, invalid token.' });
             }
@@ -82,6 +84,7 @@ const authenticateJWT = (req, res, next) => {
         res.status(401).json({ message: 'Access denied, token missing.' });
     }
 };
+
 
 // Serve pages
 app.get('/', (req, res) => {
@@ -137,7 +140,7 @@ app.post('/login', (req, res) => {
 
         if (!isPasswordValid) return res.status(401).json({ message: 'Invalid email or password' });
 
-        const token = jwt.sign({ userID: user.userID, role: user.role }, 'YourJWTSecretHere', { expiresIn: '1h' });
+        const token = jwt.sign({ userID: user.userID, role: user.role }, 'Applesauce!@', { expiresIn: '1h' });
         res.status(200).json({ message: 'Login successful', token, role: user.role });
     });
 });

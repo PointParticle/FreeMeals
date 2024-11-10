@@ -3,7 +3,7 @@ async function loadProducts() {
         const response = await fetch('/products', {
             method: 'GET',
             headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                'Authorization': 'Bearer ' + localStorage.getItem('Applesauce!@'),
             },
         });
 

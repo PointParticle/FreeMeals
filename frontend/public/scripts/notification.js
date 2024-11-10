@@ -2,7 +2,7 @@
 async function loadNotifications() {
     const response = await fetch('http://localhost:3000/notifications', {
         method: 'GET',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('Applesauce!@')}` }
     });
 
     const notifications = await response.json();
