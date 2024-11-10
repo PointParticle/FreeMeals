@@ -2,7 +2,7 @@
 async function loadClaimHistory() {
     const response = await fetch('http://localhost:3000/claims/history', {
         method: 'GET',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('Applesauce!@')}` }
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     });
 
     const claims = await response.json();

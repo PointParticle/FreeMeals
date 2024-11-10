@@ -1,19 +1,29 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const productContainer = document.getElementById('product-container');
     const token = localStorage.getItem('token');
 
-    // Fetch the products from the database
-    fetch('/products')
-        .then(response => response.json())
-        .then(products => {
-            // Loop through the products and create a card for each one
-            products.forEach(product => {
-                createProductCard(product);
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching products:', error);
+    try {
+        // Fetch the products from the database
+        const response = await fetch('/products', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`, // Add token to Authorization header
+            },
         });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch products');
+        }
+
+        const products = await response.json();
+
+        // Loop through the products and create a card for each one
+        products.forEach(product => {
+            createProductCard(product);
+        });
+    } catch (error) {
+        console.error('Error fetching products:', error);
+    }
 
     // Function to create a product card
     function createProductCard(product) {
@@ -37,11 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
         location.textContent = `Location: ${product.location}`;
 
         const expiration = document.createElement('p');
-        expiration.textContent = `Expires on: ${product.expiration_date}`;
+        const expirationDate = new Date(product.expirationDate);
+        expiration.textContent = `Expires on: ${expirationDate.toISOString().split('T')[0]}`;
+        
 
         // Button
         const button = document.createElement('button');
-        button.textContent = 'Donate Now';
+        button.textContent = 'Claim Now';
 
         // Append everything to the card
         card.appendChild(img);
@@ -55,4 +67,3 @@ document.addEventListener('DOMContentLoaded', () => {
         productContainer.appendChild(card);
     }
 });
-

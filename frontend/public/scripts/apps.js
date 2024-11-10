@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+
 // Registration function
 async function registerUser(event) {
     event.preventDefault();
