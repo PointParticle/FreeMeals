@@ -49,6 +49,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const expiration = document.createElement('p');
         const expirationDate = new Date(product.expirationDate);
         expiration.textContent = `Expires on: ${expirationDate.toISOString().split('T')[0]}`;
+
+        const image = document.createElement('img');
+        image.src = product.image;
+        document.body.appendChild(image);
         
 
         // Button
