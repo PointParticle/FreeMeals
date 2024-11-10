@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS Products (
     quantity DECIMAL(10,2) NOT NULL, -- Quantity with decimal support (e.g., 10.50 kg)
     expirationDate DATE NOT NULL,
     location VARCHAR(100) NOT NULL, -- Location of the product (if different from the donor's location)
+    image_path VARCHAR(255) DEFAULT NULL, -- Optional image path
     donorID INT NOT NULL, -- Refers to the donor who uploaded the product
     FOREIGN KEY (donorID) REFERENCES Users(userID) ON DELETE CASCADE, -- Cascading deletion if donor is removed
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
