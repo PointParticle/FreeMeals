@@ -9,8 +9,7 @@ const multer = require('multer');
 const fs = require('fs');
 
 // Initialize Express
-const app = express();
-const port = 3000; // Make sure the port is defined
+let app = express();
 
 // Create upload directory if not exists
 const uploadDir = './uploads';
